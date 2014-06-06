@@ -23,7 +23,7 @@
 // Initialize Motors and PWM
 // Input:  none
 // Output: none
-void motorsInit(void){
+void motorsInit(unsigned char value){
      m1Tris = 0; m2Tris= 0;
      m3Tris = 0; m4Tris = 0;
      m1EnTris = 0; m2EnTris = 0;
@@ -31,10 +31,15 @@ void motorsInit(void){
      m3Port = 0; m4Port = 0;
      m1En = 0; m2En = 0;
      
-     PWM1_Init(20000); // set PWM1 to 20Khz
-     PWM2_Init(20000); // set PWM2 to 20Khz
-     PWM1_Start(); // start PWM1
-     PWM2_Start(); // start PWM2
+     if(value){
+        PWM1_Init(20000); // set PWM1 to 20Khz
+        PWM2_Init(20000); // set PWM2 to 20Khz
+        PWM1_Start(); // start PWM1
+        PWM2_Start(); // start PWM2
+     } else {
+        m1En = 1;
+        m2En = 1;
+     }
 }
 
 // set motor1 speed and direction
@@ -49,10 +54,12 @@ void setM1Speed(int speed){
      }
      if (speed > 400)  // Max PWM dutycycle
         speed = 400;
-    
+     
      PWM2_Set_Duty(speed * 51 / 80); // mapping 400 to 255
-  
-     if(reverse){
+     
+     if(speed == 0){
+        m1Port = 0; m2Port = 0;
+     } else if(reverse){
         m1Port = 0; m2Port = 1;
      } else{
         m1Port = 1; m2Port = 0;
@@ -74,14 +81,19 @@ void setM2Speed(int speed){
 
      PWM1_Set_Duty(speed * 51 / 80); // mapping 400 to 255
 
-     if(reverse){
+     if(speed == 0){
+        m3Port = 0; m4Port = 0;
+     }else if(reverse){
         m3Port = 0; m4Port = 1;
      } else{
         m3Port = 1; m4Port = 0;
      }
 }
 
-void setSpeeds(int m1Speed, int m2Speed){
+// set both motors speed and direction
+// Input:  motor speed (between -400 and 400)
+// Output: none
+void setMotors(int m1Speed, int m2Speed){
      setM1Speed(m1Speed);
      setM2Speed(m2Speed);
 }

@@ -5,23 +5,7 @@
 */
 #include <stdint.h>
 #include "roboKamp.h"
-
-#define m1Port PORTC.RC0
-#define m2Port PORTC.RC3
-#define m3Port PORTA.RA2
-#define m4Port PORTA.RA5
-#define m1En   PORTC.RC1
-#define m2En   PORTC.RC2
-
-#define trig PORTC.RC5
-#define echo PORTC.RC4
-
-#define RCIE PIE1.RCIE
-#define RCIF PIR1.RCIF
-
-#define enableTMR1ON T1CON.B0
-#define timer0InterruptFlag INTCON.B2
-#define timer1InterruptFlag PIR1.B0
+//#include "roboUART.h"
 
 uint8_t checkFlag;
 uint16_t zaman;
@@ -34,9 +18,6 @@ uint16_t zaman;
 // Input:  none
 // Output: none
 void portInit( void ){
-     PORTA = 0x00;
-     PORTB = 0x00;
-     PORTC = 0x00;
      TRISA = 0x13;
      TRISB = 0xFF;
      TRISC = 0x10;
@@ -140,14 +121,13 @@ void setMotors( int m1Speed, int m2Speed ){
 // Output: none
 void timer1Init( void ){
      // T0CON (Prescale = 1:4 | Source = CLKO (Fosc/4))
-     T1CON.B0 = 0; // TMR1ON
-     T1CON.B1 = 0; // TMR1CS
-     T1CON.B2 = 0; // ~T1SYNC
-     T1CON.B3 = 0; // T1OSCEN
-     T1CON.B4 = 0; // T1CKPS0
-     T1CON.B5 = 1; // T1CKPS1
-     T1CON.B6 = 0; // Unimplemented
-     T1CON.B7 = 0; // RD16
+     T1CON.TMR1ON = 0; // TMR1ON
+     T1CON.TMR1CS = 0; // TMR1CS
+     T1CON.T1SYNC = 0; // ~T1SYNC
+     T1CON.T1OSCEN = 0; // T1OSCEN
+     T1CON.T1CKPS0 = 0; // T1CKPS0
+     T1CON.T1CKPS1 = 1; // T1CKPS1
+     T1CON.RD16 = 0; // RD16
 
      PIE1.B0 = 1;
      PIR1.B0 = 0;
@@ -158,28 +138,37 @@ void timer1Init( void ){
 // Output: none
 void timer0Init( void ){
      // T0CON (Prescale = 1:256 | Source = CLKO (Fosc/4)) 76 1 sec
-     T0CON.B0 = 1; // T0PS0
-     T0CON.B1 = 1; // T0PS1
-     T0CON.B2 = 1; // T0PS2
-     T0CON.B3 = 0; // PSA
-     T0CON.B4 = 0; // T0SE
-     T0CON.B5 = 0; // T0CS
-     T0CON.B6 = 1; // T08BIT
-     T0CON.B7 = 1; // TMR0ON
+     T0CON.T0PS0 = 1; // T0PS0
+     T0CON.T0PS1 = 1; // T0PS1
+     T0CON.T0PS2 = 1; // T0PS2
+     T0CON.PSA = 0; // PSA
+     T0CON.T0SE = 0; // T0SE
+     T0CON.T0CS = 0; // T0CS
+     T0CON.T08BIT = 1; // T08BIT
+     T0CON.TMR0ON = 1; // TMR0ON
 }
 
 //******************************************************************************
 // READ DIP SWITCHES &&& BUZZER FUNCTIONS
 // *****************************************************************************
 
+// read dipSwitches
+// Input:  DIP_1, DIP_2
+// Output: 1 ( DIP switch ON ) , 0
 uint8_t dipSwitchOku( uint8_t _dipSwitch ){
    return ( _dipSwitch == 1 ) ? 1 : 0;
 }
 
+// Buzzer Kontrol function
+// Input:  DutyCycle ( 0 - 255)
+// Output: none
 void buzzerKontrol( uint8_t _DutyCycle ){
    PWM2_Set_Duty( ( _DutyCycle <= 255 && _DutyCycle >=0 ) ? ( _DutyCycle*51/20 ) : 255 );
 }
 
+// read Button
+// Input:  BUT1
+// Output: 1 , 0 ( button pressed )
 uint8_t tachOku( uint8_t _tach ){
    return ( _tach == 1 ) ? 1 : 0;
 }
@@ -188,9 +177,9 @@ uint8_t tachOku( uint8_t _tach ){
 // SENSORS PART OF LIBRARY
 // *****************************************************************************
 
-// Sharp sensor reading function
-// Input:  A0,A1,A3 ( which sensor read? )
-// Output: 1 or 0 ( with respect to define distance )
+// Sharp sensor reading function ( logic )
+// Input:  sharp_1, sharp_2 ( which sensor read? )
+// Output: 1 ( sensör görürse ) or 0 ( with respect to define distance )
 uint8_t sharpSensorOku( uint8_t _sensorPin ){
    ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 );
    ADCON0.B2 = 1; // GO
@@ -198,17 +187,10 @@ uint8_t sharpSensorOku( uint8_t _sensorPin ){
    return ( ( ( ADRESH<<8 ) + ADRESL ) < 200 ) ? 1 : 0;
 }
 
-uint8_t sharpSensorAnalogOku( uint8_t _sensorPin ){
-   ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 );
-   ADCON0.B2 = 1; // GO
-   while( ADCON0.B2 ) continue; //nDONE
-   return ( ( ( ADRESH<<8 ) + ADRESL ) < 200 ) ? ( ( ADRESH<<8 ) + ADRESL ) : 40;
-}
-
-// Ultrasonic sensor reading function
+// Ultrasonic sensor reading function ( logic )
 // Input:  distance value between 0 to 400 cm
 // Output: 1 or 0 ( with respect to input distance )
-uint8_t ultrasonicSensorOku( uint8_t _max_distance ){
+/*uint8_t ultrasonicSensorOku( uint8_t _max_distance ){
    unsigned long distance_cm = 0;
    uint16_t TMR = 0;
 
@@ -235,9 +217,12 @@ uint8_t ultrasonicSensorOku( uint8_t _max_distance ){
    distance_cm = ( ( TMR/10 ) * 8 )/58;
 
    return ( distance_cm <= _max_distance && distance_cm > 0 ) ? 1 : 0;
-}
+}*/
 
-uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance ){
+// Ultrasonic sensor reading function ( Analog )
+// Input:  distance value between 0 to 400 cm
+// Output: distance in cm ( with respect to input distance )
+/*uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance ){
    unsigned long distance_cm = 0;
    uint16_t TMR = 0;
 
@@ -264,24 +249,27 @@ uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance ){
    distance_cm = ( ( TMR/10 ) * 8 )/58;
 
    return ( distance_cm <= _max_distance ) ? distance_cm : 40;
-}
+} */
 
 // CN70 sensor reading function
-// Input:  B00, B11, B22, B33
-// Output: 1 or 0
+// Input:  cn70_1, cn70_2, cn70_3, cn70_4
+// Output: 1 ( sensör görürse ) or 0
 uint8_t cn70SensorOku( uint8_t _cn70 ){
    return ( _cn70 == 1 ) ? 1 : 0;
 }
 
 // MZ80 digital distance sensor reading function
-// Input: B66, B77
-// Output: 1 or 0
+// Input: mz80_1, mz80_2
+// Output: 1 ( sensör görürse ) or 0
 uint8_t mz80SensorOku( uint8_t _mz80 ){
      return ( _mz80 == 1 ) ? 0 : 1;
 }
 
 // INTERRUPT FUNCTION: DON'T TOUCH THIS FUNCTION !!!
 void interrupt( void ){
+  //if(RCIE && RCIF){
+    //roboUARTHandleRxInt();
+  //}
   if( timer1InterruptFlag == 1 ){ // TMR1 Interrupt
     checkFlag = 0;
     timer1InterruptFlag = 0;

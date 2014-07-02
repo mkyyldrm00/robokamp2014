@@ -5,7 +5,6 @@
 */
 #include <stdint.h>
 #include "roboKamp.h"
-#include "roboUART.h"
 
 #define m1Port PORTC.RC0
 #define m2Port PORTC.RC3
@@ -193,14 +192,14 @@ uint8_t tachOku( uint8_t _tach ){
 // Input:  A0,A1,A3 ( which sensor read? )
 // Output: 1 or 0 ( with respect to define distance )
 uint8_t sharpSensorOku( uint8_t _sensorPin ){
-   ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 ) );
+   ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 );
    ADCON0.B2 = 1; // GO
    while( ADCON0.B2 ) continue; //nDONE
    return ( ( ( ADRESH<<8 ) + ADRESL ) < 200 ) ? 1 : 0;
 }
 
 uint8_t sharpSensorAnalogOku( uint8_t _sensorPin ){
-   ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 ) );
+   ADCON0 |= ( _sensorPin == sharp_1 ) ? 0x00 : ( ( _sensorPin == sharp_2 ) ? 0x08 : 0x00 );
    ADCON0.B2 = 1; // GO
    while( ADCON0.B2 ) continue; //nDONE
    return ( ( ( ADRESH<<8 ) + ADRESL ) < 200 ) ? ( ( ADRESH<<8 ) + ADRESL ) : 40;
@@ -283,9 +282,7 @@ uint8_t mz80SensorOku( uint8_t _mz80 ){
 
 // INTERRUPT FUNCTION: DON'T TOUCH THIS FUNCTION !!!
 void interrupt( void ){
-  if(RCIE && RCIF){
-    roboUARTHandleRxInt();
-  } else if( timer1InterruptFlag == 1 ){ // TMR1 Interrupt
+  if( timer1InterruptFlag == 1 ){ // TMR1 Interrupt
     checkFlag = 0;
     timer1InterruptFlag = 0;
   } else if( timer0InterruptFlag == 1 ){ // TMR0 Interrupt

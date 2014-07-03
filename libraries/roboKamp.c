@@ -260,7 +260,7 @@ uint8_t cn70SensorOku( uint8_t _cn70 ){
 
 // MZ80 digital distance sensor reading function
 // Input: mz80_1, mz80_2
-// Output: 1 ( sensör görürse ) or 0
+// Output: 1 or 0 ( sensör görürse )
 uint8_t mz80SensorOku( uint8_t _mz80 ){
      return ( _mz80 == 1 ) ? 0 : 1;
 }

@@ -19,7 +19,7 @@ uint16_t zaman;
 // Output: none
 void portInit( void ){
      TRISA = 0x13;
-     TRISB = 0xFF;
+     TRISB = 0xBF;
      TRISC = 0x10;
 
      ADCON0 = 0x09;
@@ -190,7 +190,7 @@ uint8_t sharpSensorOku( uint8_t _sensorPin ){
 // Ultrasonic sensor reading function ( logic )
 // Input:  distance value between 0 to 400 cm
 // Output: 1 or 0 ( with respect to input distance )
-/*uint8_t ultrasonicSensorOku( uint8_t _max_distance ){
+uint8_t ultrasonicSensorOku( uint8_t _max_distance ){
    unsigned long distance_cm = 0;
    uint16_t TMR = 0;
 
@@ -217,12 +217,12 @@ uint8_t sharpSensorOku( uint8_t _sensorPin ){
    distance_cm = ( ( TMR/10 ) * 8 )/58;
 
    return ( distance_cm <= _max_distance && distance_cm > 0 ) ? 1 : 0;
-}*/
+}
 
 // Ultrasonic sensor reading function ( Analog )
 // Input:  distance value between 0 to 400 cm
 // Output: distance in cm ( with respect to input distance )
-/*uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance ){
+uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance ){
    unsigned long distance_cm = 0;
    uint16_t TMR = 0;
 
@@ -249,7 +249,7 @@ uint8_t sharpSensorOku( uint8_t _sensorPin ){
    distance_cm = ( ( TMR/10 ) * 8 )/58;
 
    return ( distance_cm <= _max_distance ) ? distance_cm : 40;
-} */
+}
 
 // CN70 sensor reading function
 // Input:  cn70_1, cn70_2, cn70_3, cn70_4

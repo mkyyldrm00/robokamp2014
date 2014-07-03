@@ -33,8 +33,8 @@
 #define m1En   PORTC.RC1
 #define m2En   PORTC.RC2
 
-#define trig PORTC.RC5
-#define echo PORTC.RC4
+#define trig PORTB.RB7
+#define echo PORTB.RB6
 
 #define RCIE PIE1.RCIE
 #define RCIF PIR1.RCIF
@@ -52,7 +52,6 @@ void motorsInit( unsigned char ); // Initialize Motor I/O ports
 void setM1Speed( int speed ); // Set speed for M1.
 void setM2Speed( int speed ); // Set speed for M2.
 void setMotors( int m1Speed, int m2Speed ); // Set speed for both M1 and M2.
-
 void timer0Init( void );
 void timer1Init( void );
 
@@ -61,8 +60,8 @@ void buzzerKontrol( uint8_t _DutyCycle );
 uint8_t tachOku( uint8_t _tach );
 
 uint8_t sharpSensorOku( uint8_t _sensorPin );
-//uint8_t ultrasonicSensorOku( uint8_t _max_distance );
-//uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance );
+uint8_t ultrasonicSensorOku( uint8_t _max_distance );
+uint8_t ultrasonicSensorAnalogOku( uint8_t _max_distance );
 uint8_t cn70SensorOku( uint8_t _cn70 );
 uint8_t mz80SensorOku( uint8_t _mz80 );
 

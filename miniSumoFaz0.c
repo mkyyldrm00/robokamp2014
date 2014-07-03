@@ -28,7 +28,7 @@ void main() {
      LED_2 = 1;
      delay_ms(4000);
      LED_1 = 0;
-
+     
      tmr0IEnable;
      globalINTEnable;
 
